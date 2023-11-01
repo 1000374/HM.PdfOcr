@@ -161,7 +161,6 @@ namespace HM.PdfOcr
                 return true;
             }
             AppendTextToRich($"开始转换...");
-            List<PdfPage> pdfPages = new List<PdfPage>();
             using (PdfSharp.Pdf.PdfDocument xDoc = new PdfSharp.Pdf.PdfDocument())
             {
                 for (int page = 0; page < document.PageCount; page++)
@@ -182,7 +181,7 @@ namespace HM.PdfOcr
                         PaddleOcrResult result = await OcrImage(image);
 
                         xDoc.Pages.Add(new PdfPage() { Width = pdfWidth, Height = pdfHeight });
-                        PdfPage xPage = xDoc.Pages[0];
+                        PdfPage xPage = xDoc.Pages[page];
                         XGraphics gfx = XGraphics.FromPdfPage(xPage);
                         if (drawImage)
                         {
@@ -221,7 +220,6 @@ namespace HM.PdfOcr
                             }
 
                         }
-                        pdfPages.Add(xPage);
                         AppendTextToRich($"第{page}页提取成功");
                     }
                 }
