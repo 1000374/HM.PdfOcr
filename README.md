@@ -5,10 +5,10 @@
 此项目基于.netFramework4.8创建，PaddleSharp只能在x64下使用，文件只能在64位系统使用
 详情可以查看：https://www.cnblogs.com/xiaohemiao/p/17803534.html
 
-使用以下开源库，感谢
-PdfiumViewer PDF预览及可编辑PDF的提取
-PDFsharp 生成PDF
-PaddleSharp 对图片OCR识别
-https://github.com/pvginkel/PdfiumViewer 
-https://github.com/empira/PDFsharp
-https://github.com/sdcb/PaddleSharp
+使用以下开源库，感谢；
+PdfiumViewer PDF预览及可编辑PDF的提取；
+PDFsharp 生成PDF；
+PaddleSharp 对图片OCR识别；
+https://github.com/pvginkel/PdfiumViewer ；
+https://github.com/empira/PDFsharp；
+https://github.com/sdcb/PaddleSharp；
