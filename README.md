@@ -6,9 +6,9 @@
 详情可以查看：https://www.cnblogs.com/xiaohemiao/p/17803534.html
 
 使用以下开源库，感谢；
-PdfiumViewer PDF预览及可编辑PDF的提取；
-PDFsharp 生成PDF；
-PaddleSharp 对图片OCR识别；
-https://github.com/pvginkel/PdfiumViewer ；
-https://github.com/empira/PDFsharp；
-https://github.com/sdcb/PaddleSharp；
+PdfiumViewer PDF预览及可编辑PDF的提取： 
+https://github.com/pvginkel/PdfiumViewer 
+PDFsharp 生成PDF： 
+https://github.com/empira/PDFsharp 
+PaddleSharp 对图片OCR识别： 
+https://github.com/sdcb/PaddleSharp 
