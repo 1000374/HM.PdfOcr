@@ -33,6 +33,7 @@
             this.linkLabel1 = new System.Windows.Forms.LinkLabel();
             this.label2 = new System.Windows.Forms.Label();
             this.linkLabel2 = new System.Windows.Forms.LinkLabel();
+            this.label3 = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // button1
@@ -85,11 +86,21 @@
             this.linkLabel2.Text = "https://github.com/1000374/HM.PdfOcr";
             this.linkLabel2.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.linkLabel2_LinkClicked);
             // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(173, 123);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(41, 12);
+            this.label3.TabIndex = 5;
+            this.label3.Text = "V1.0.0";
+            // 
             // AboutForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(402, 196);
+            this.Controls.Add(this.label3);
             this.Controls.Add(this.linkLabel2);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.linkLabel1);
@@ -110,5 +121,6 @@
         private System.Windows.Forms.LinkLabel linkLabel1;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.LinkLabel linkLabel2;
+        private System.Windows.Forms.Label label3;
     }
 }
