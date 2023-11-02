@@ -544,6 +544,12 @@ namespace HM.PdfOcr
                 await GengeneratePDF(newFile, pdfViewer1.Document, false);
             }
         }
+
+        private void toolStripButton5_Click(object sender, EventArgs e)
+        {
+            var show=new AboutForm();
+            show.ShowDialog(this);
+        }
     }
 
     enum FileType

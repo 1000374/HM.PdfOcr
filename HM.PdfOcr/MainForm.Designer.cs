@@ -32,6 +32,7 @@
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.pdfViewer1 = new PdfiumViewer.PdfViewer();
             this.toolStrip1 = new System.Windows.Forms.ToolStrip();
+            this._openFile = new System.Windows.Forms.ToolStripButton();
             this.toolStripLabel1 = new System.Windows.Forms.ToolStripLabel();
             this._page = new System.Windows.Forms.ToolStripTextBox();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
@@ -44,20 +45,20 @@
             this.toolStripButton4 = new System.Windows.Forms.ToolStripButton();
             this.toolStripButton3 = new System.Windows.Forms.ToolStripButton();
             this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
+            this._fitBest = new System.Windows.Forms.ToolStripButton();
             this._matching = new System.Windows.Forms.ToolStripButton();
             this._getTextFromPage = new System.Windows.Forms.ToolStripButton();
+            this._copy = new System.Windows.Forms.ToolStripButton();
+            this.toolStripDropDownButton1 = new System.Windows.Forms.ToolStripDropDownButton();
+            this.转换双层pdfToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.直接生成pdfToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.pdfViewerContextMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.copyToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.selectAllToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this._openFile = new System.Windows.Forms.ToolStripButton();
-            this._fitBest = new System.Windows.Forms.ToolStripButton();
-            this._copy = new System.Windows.Forms.ToolStripButton();
             this.richTextBox1 = new System.Windows.Forms.RichTextBox();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
-            this.toolStripDropDownButton1 = new System.Windows.Forms.ToolStripDropDownButton();
-            this.转换双层pdfToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
-            this.直接生成pdfToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripButton5 = new System.Windows.Forms.ToolStripButton();
             this.toolStrip1.SuspendLayout();
             this.pdfViewerContextMenu.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
@@ -95,12 +96,23 @@
             this._matching,
             this._getTextFromPage,
             this._copy,
-            this.toolStripDropDownButton1});
+            this.toolStripDropDownButton1,
+            this.toolStripButton5});
             this.toolStrip1.Location = new System.Drawing.Point(0, 0);
             this.toolStrip1.Name = "toolStrip1";
             this.toolStrip1.Size = new System.Drawing.Size(1059, 25);
             this.toolStrip1.TabIndex = 9;
             this.toolStrip1.Text = "toolStrip1";
+            // 
+            // _openFile
+            // 
+            this._openFile.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this._openFile.Image = ((System.Drawing.Image)(resources.GetObject("_openFile.Image")));
+            this._openFile.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this._openFile.Name = "_openFile";
+            this._openFile.Size = new System.Drawing.Size(60, 22);
+            this._openFile.Text = "打开文件";
+            this._openFile.Click += new System.EventHandler(this._openFile_Click);
             // 
             // toolStripLabel1
             // 
@@ -186,6 +198,16 @@
             this.toolStripSeparator3.Name = "toolStripSeparator3";
             this.toolStripSeparator3.Size = new System.Drawing.Size(6, 25);
             // 
+            // _fitBest
+            // 
+            this._fitBest.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this._fitBest.Image = ((System.Drawing.Image)(resources.GetObject("_fitBest.Image")));
+            this._fitBest.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this._fitBest.Name = "_fitBest";
+            this._fitBest.Size = new System.Drawing.Size(48, 22);
+            this._fitBest.Text = "自适应";
+            this._fitBest.Click += new System.EventHandler(this._fitBest_Click);
+            // 
             // _matching
             // 
             this._matching.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
@@ -206,6 +228,41 @@
             this._getTextFromPage.Text = "提取文本";
             this._getTextFromPage.Click += new System.EventHandler(this._getTextFromPage_Click);
             // 
+            // _copy
+            // 
+            this._copy.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this._copy.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this._copy.Name = "_copy";
+            this._copy.Size = new System.Drawing.Size(36, 22);
+            this._copy.Text = "复制";
+            this._copy.Click += new System.EventHandler(this._copy_Click);
+            // 
+            // toolStripDropDownButton1
+            // 
+            this.toolStripDropDownButton1.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.toolStripDropDownButton1.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.转换双层pdfToolStripMenuItem,
+            this.直接生成pdfToolStripMenuItem});
+            this.toolStripDropDownButton1.Image = ((System.Drawing.Image)(resources.GetObject("toolStripDropDownButton1.Image")));
+            this.toolStripDropDownButton1.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.toolStripDropDownButton1.Name = "toolStripDropDownButton1";
+            this.toolStripDropDownButton1.Size = new System.Drawing.Size(45, 22);
+            this.toolStripDropDownButton1.Text = "工具";
+            // 
+            // 转换双层pdfToolStripMenuItem
+            // 
+            this.转换双层pdfToolStripMenuItem.Name = "转换双层pdfToolStripMenuItem";
+            this.转换双层pdfToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.转换双层pdfToolStripMenuItem.Text = "转换双层pdf";
+            this.转换双层pdfToolStripMenuItem.Click += new System.EventHandler(this.转换双层pdfToolStripMenuItem_Click);
+            // 
+            // 直接生成pdfToolStripMenuItem
+            // 
+            this.直接生成pdfToolStripMenuItem.Name = "直接生成pdfToolStripMenuItem";
+            this.直接生成pdfToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.直接生成pdfToolStripMenuItem.Text = "直接生成pdf";
+            this.直接生成pdfToolStripMenuItem.Click += new System.EventHandler(this.直接生成pdfToolStripMenuItem_Click);
+            // 
             // pdfViewerContextMenu
             // 
             this.pdfViewerContextMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -225,35 +282,6 @@
             this.selectAllToolStripMenuItem.Name = "selectAllToolStripMenuItem";
             this.selectAllToolStripMenuItem.Size = new System.Drawing.Size(128, 22);
             this.selectAllToolStripMenuItem.Text = "Select &All";
-            // 
-            // _openFile
-            // 
-            this._openFile.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
-            this._openFile.Image = ((System.Drawing.Image)(resources.GetObject("_openFile.Image")));
-            this._openFile.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this._openFile.Name = "_openFile";
-            this._openFile.Size = new System.Drawing.Size(60, 22);
-            this._openFile.Text = "打开文件";
-            this._openFile.Click += new System.EventHandler(this._openFile_Click);
-            // 
-            // _fitBest
-            // 
-            this._fitBest.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
-            this._fitBest.Image = ((System.Drawing.Image)(resources.GetObject("_fitBest.Image")));
-            this._fitBest.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this._fitBest.Name = "_fitBest";
-            this._fitBest.Size = new System.Drawing.Size(48, 22);
-            this._fitBest.Text = "自适应";
-            this._fitBest.Click += new System.EventHandler(this._fitBest_Click);
-            // 
-            // _copy
-            // 
-            this._copy.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
-            this._copy.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this._copy.Name = "_copy";
-            this._copy.Size = new System.Drawing.Size(36, 22);
-            this._copy.Text = "复制";
-            this._copy.Click += new System.EventHandler(this._copy_Click);
             // 
             // richTextBox1
             // 
@@ -282,25 +310,6 @@
             this.splitContainer1.SplitterDistance = 757;
             this.splitContainer1.TabIndex = 11;
             // 
-            // toolStripDropDownButton1
-            // 
-            this.toolStripDropDownButton1.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
-            this.toolStripDropDownButton1.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.转换双层pdfToolStripMenuItem,
-            this.直接生成pdfToolStripMenuItem});
-            this.toolStripDropDownButton1.Image = ((System.Drawing.Image)(resources.GetObject("toolStripDropDownButton1.Image")));
-            this.toolStripDropDownButton1.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.toolStripDropDownButton1.Name = "toolStripDropDownButton1";
-            this.toolStripDropDownButton1.Size = new System.Drawing.Size(45, 22);
-            this.toolStripDropDownButton1.Text = "工具";
-            // 
-            // 转换双层pdfToolStripMenuItem
-            // 
-            this.转换双层pdfToolStripMenuItem.Name = "转换双层pdfToolStripMenuItem";
-            this.转换双层pdfToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.转换双层pdfToolStripMenuItem.Text = "转换双层pdf";
-            this.转换双层pdfToolStripMenuItem.Click += new System.EventHandler(this.转换双层pdfToolStripMenuItem_Click);
-            // 
             // pictureBox1
             // 
             this.pictureBox1.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
@@ -312,12 +321,15 @@
             this.pictureBox1.TabIndex = 9;
             this.pictureBox1.TabStop = false;
             // 
-            // 直接生成pdfToolStripMenuItem
+            // toolStripButton5
             // 
-            this.直接生成pdfToolStripMenuItem.Name = "直接生成pdfToolStripMenuItem";
-            this.直接生成pdfToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.直接生成pdfToolStripMenuItem.Text = "直接生成pdf";
-            this.直接生成pdfToolStripMenuItem.Click += new System.EventHandler(this.直接生成pdfToolStripMenuItem_Click);
+            this.toolStripButton5.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.toolStripButton5.Image = ((System.Drawing.Image)(resources.GetObject("toolStripButton5.Image")));
+            this.toolStripButton5.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.toolStripButton5.Name = "toolStripButton5";
+            this.toolStripButton5.Size = new System.Drawing.Size(36, 22);
+            this.toolStripButton5.Text = "关于";
+            this.toolStripButton5.Click += new System.EventHandler(this.toolStripButton5_Click);
             // 
             // MainForm
             // 
@@ -373,6 +385,7 @@
         private System.Windows.Forms.ToolStripMenuItem 转换双层pdfToolStripMenuItem;
         private System.Windows.Forms.PictureBox pictureBox1;
         private System.Windows.Forms.ToolStripMenuItem 直接生成pdfToolStripMenuItem;
+        private System.Windows.Forms.ToolStripButton toolStripButton5;
     }
 }
 
