@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace HM.PdfOcr
+namespace HM.PdfOcr.UCControl
 {
     public static class CompentExtension
     {

@@ -1,4 +1,5 @@
 ﻿using EZFontResolver1;
+using HM.PdfOcr.UCControl;
 using OpenCvSharp;
 using PdfiumViewer;
 using PdfSharp.Drawing;
@@ -14,12 +15,15 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using PdfDocument = PdfiumViewer.PdfDocument;
+using Point = System.Drawing.Point;
 
 namespace HM.PdfOcr
 {
@@ -43,7 +47,7 @@ namespace HM.PdfOcr
                 form.Title = "打开文件";
                 if (form.ShowDialog(this) != DialogResult.OK)
                 {
-                    Dispose();
+                    // Dispose();
                     return;
                 }
                 fileName = form.FileName;
@@ -52,7 +56,6 @@ namespace HM.PdfOcr
                 {
                     pictureBox1.Visible = false;
                     pdfViewer1.Visible = true;
-
                     pictureBox1.Image?.Dispose();
                     pictureBox1.Image = null;
                     pdfViewer1.Document?.Dispose();
@@ -62,10 +65,10 @@ namespace HM.PdfOcr
                 {
                     pictureBox1.Visible = true;
                     pdfViewer1.Visible = false;
-
+                    var image = OpenImage(fileName);
                     pdfViewer1.Document?.Dispose();
                     pictureBox1.Image = null;
-                    pictureBox1.Image = OpenImage(fileName);
+                    pictureBox1.Image = image;
                 }
                 toolStripButton1.Enabled = true;
                 toolStripButton2.Enabled = true;
@@ -155,87 +158,89 @@ namespace HM.PdfOcr
 
         private async Task<bool> GengeneratePDF(string filePath, IPdfDocument document, bool drawImage)
         {
-            if (document == null)
-            {
-                AppendTextToRich($"请先打开pdf...");
-                return true;
-            }
-            AppendTextToRich($"开始转换...");
-            using (PdfSharp.Pdf.PdfDocument xDoc = new PdfSharp.Pdf.PdfDocument())
-            {
-                for (int page = 0; page < document.PageCount; page++)
-                {
-                    if (document.GetPdfEditable(page))
-                    {
-                        AppendTextToRich($"当前{page}不需要转换");
-                        continue;
-                    }
-                    int dpiX = 96 * 5;
-                    int dpiY = 96 * 5;
-                    var pdfWidth = (int)document.PageSizes[page].Width * 4 / 3;
-                    var pdfHeight = (int)document.PageSizes[page].Height * 4 / 3;
-                    var rotate = PdfRotation.Rotate0;
-                    var flags = PdfRenderFlags.Annotations | PdfRenderFlags.CorrectFromDpi;
-                    using (var image = document.Render(page, pdfWidth, pdfHeight, dpiX, dpiY, rotate, flags))
-                    {
-                        PaddleOcrResult result = await OcrImage(image);
+            return await Task.Run<bool>(() =>
+                 {
+                     if (document == null)
+                     {
+                         AppendTextToRich($"请先打开pdf...");
+                         return false;
+                     }
+                     AppendTextToRich($"开始转换,总共{document.PageCount}页，请稍后...");
+                     using (PdfSharp.Pdf.PdfDocument xDoc = new PdfSharp.Pdf.PdfDocument())
+                     {
+                         for (int page = 0; page < document.PageCount; page++)
+                         {
+                             if (document.GetPdfEditable(page))
+                             {
+                                 AppendTextToRich($"当前{page}不需要转换");
+                                 continue;
+                             }
+                             int dpiX = 96 * 5;
+                             int dpiY = 96 * 5;
+                             var pdfWidth = (int)document.PageSizes[page].Width * 4 / 3;
+                             var pdfHeight = (int)document.PageSizes[page].Height * 4 / 3;
+                             var rotate = PdfRotation.Rotate0;
+                             var flags = PdfRenderFlags.Annotations | PdfRenderFlags.CorrectFromDpi;
+                             using (var image = document.Render(page, pdfWidth, pdfHeight, dpiX, dpiY, rotate, flags))
+                             {
+                                 PaddleOcrResult result = OcrImage(image);
 
-                        xDoc.Pages.Add(new PdfPage() { Width = pdfWidth, Height = pdfHeight });
-                        PdfPage xPage = xDoc.Pages[page];
-                        XGraphics gfx = XGraphics.FromPdfPage(xPage);
-                        if (drawImage)
-                        {
-                            gfx.BeginMarkedContentPropList("oc1");
-                            //var font = new XFont("微软雅黑", 10, XFontStyle.Regular);
-                            foreach (PaddleOcrResultRegion region in result.Regions)
-                            {
-                                var center = region.Rect.Center;
-                                var rect = region.Rect.BoundingRect();//rect.Y + rect.Height / 2
-                                var size = ConvertToPDFSize(new RectangleF(rect.X, center.Y + rect.Height / 4, rect.Width, rect.Height), dpiX, dpiY, rotate, flags);
-                                #region 字体等比例放大不适用
-                                //var width = size.Width;
-                                //var height = size.Height;
-                                //var textSize = gfx.MeasureString(region.Text, font);
-                                //var scale = Math.Min(width / textSize.Width, height / textSize.Height);
-                                //gfx.ScaleTransform(scale, scale,XMatrixOrder.Prepend);
-                                #endregion
-                                var font = GetFont(region.Text, gfx, size.Width, size.Height);
-                                gfx.DrawString(region.Text, font, XBrushes.Black, size.X, size.Y);
-                            }
+                                 xDoc.Pages.Add(new PdfPage() { Width = pdfWidth, Height = pdfHeight });
+                                 PdfPage xPage = xDoc.Pages[page];
+                                 XGraphics gfx = XGraphics.FromPdfPage(xPage);
+                                 if (drawImage)
+                                 {
+                                     gfx.BeginMarkedContentPropList("oc1");
+                                     //var font = new XFont("微软雅黑", 10, XFontStyle.Regular);
+                                     foreach (PaddleOcrResultRegion region in result.Regions)
+                                     {
+                                         var center = region.Rect.Center;
+                                         var rect = region.Rect.BoundingRect();//rect.Y + rect.Height / 2
+                                         var size = ConvertToPDFSize(new RectangleF(rect.X, center.Y + rect.Height / 4, rect.Width, rect.Height), dpiX, dpiY, rotate, flags);
+                                         #region 字体等比例放大不适用
+                                         //var width = size.Width;
+                                         //var height = size.Height;
+                                         //var textSize = gfx.MeasureString(region.Text, font);
+                                         //var scale = Math.Min(width / textSize.Width, height / textSize.Height);
+                                         //gfx.ScaleTransform(scale, scale,XMatrixOrder.Prepend);
+                                         #endregion
+                                         var font = GetFont(region.Text, gfx, size.Width, size.Height);
+                                         gfx.DrawString(region.Text, font, XBrushes.Black, size.X, size.Y);
+                                     }
 
-                            gfx.EndMarkedContent();
-                            PdfResources rsx = (xPage.Elements["/Resources"] as PdfResources);
-                            rsx.AddOCG("oc1", "Layer 1");
-                            gfx.DrawImage(image, 0, 0, pdfWidth, pdfHeight);
-                        }
-                        else
-                        {
-                            foreach (PaddleOcrResultRegion region in result.Regions)
-                            {
-                                var center = region.Rect.Center;
-                                var rect = region.Rect.BoundingRect();//rect.Y + rect.Height / 2
-                                var size = ConvertToPDFSize(new RectangleF(rect.X, center.Y + rect.Height / 4, rect.Width, rect.Height), dpiX, dpiY, rotate, flags);
-                                var font = GetFont(region.Text, gfx, size.Width, size.Height);
-                                gfx.DrawString(region.Text, font, XBrushes.Black, size.X, size.Y);
-                            }
+                                     gfx.EndMarkedContent();
+                                     PdfResources rsx = (xPage.Elements["/Resources"] as PdfResources);
+                                     rsx.AddOCG("oc1", "Layer 1");
+                                     gfx.DrawImage(image, 0, 0, pdfWidth, pdfHeight);
+                                 }
+                                 else
+                                 {
+                                     foreach (PaddleOcrResultRegion region in result.Regions)
+                                     {
+                                         var center = region.Rect.Center;
+                                         var rect = region.Rect.BoundingRect();//rect.Y + rect.Height / 2
+                                         var size = ConvertToPDFSize(new RectangleF(rect.X, center.Y + rect.Height / 4, rect.Width, rect.Height), dpiX, dpiY, rotate, flags);
+                                         var font = GetFont(region.Text, gfx, size.Width, size.Height);
+                                         gfx.DrawString(region.Text, font, XBrushes.Black, size.X, size.Y);
+                                     }
 
-                        }
-                        AppendTextToRich($"第{page}页提取成功");
-                    }
-                }
-                if (xDoc.PageCount > 0)
-                {
-                    xDoc.Save(filePath);
-                    AppendTextToRich($"提取{filePath}成功");
-                }
-                else
-                {
-                    AppendTextToRich($"没有要转换的pdf");
-                }
-                xDoc.Close();
-            }
-
-            return true;
+                                 }
+                                 AppendTextToRich($"第{page}页提取成功");
+                             }
+                         }
+                         if (xDoc.PageCount > 0)
+                         {
+                             xDoc.Save(filePath);
+                             AppendTextToRich($"提取{filePath}成功");
+                         }
+                         else
+                         {
+                             AppendTextToRich($"没有要转换的pdf");
+                         }
+                         xDoc.Close();
+                     }
+                     return true;
+                 });
         }
         List<XFont> _fontCache = new List<XFont>();
         private XFont GetFont(string str, XGraphics g, float imgWidth, float imgHeight)
@@ -301,28 +306,33 @@ namespace HM.PdfOcr
             return _fontCache[estimatedFontSize];
         }
 
-        private async Task<PaddleOcrResult> OcrImage(Image image)
+        private async Task<PaddleOcrResult> OcrImageAsync(Image image)
         {
-            var task =await Task.Run(() =>
+            var task = await Task.Run(() =>
               {
-                  byte[] sampleImageData = ImageToByte(image);
-                  FullOcrModel model = LocalFullModels.ChineseV3;
-                  using (PaddleOcrAll all = new PaddleOcrAll(model, PaddleDevice.Mkldnn())
-                  {
-                      AllowRotateDetection = true, /* 允许识别有角度的文字 */
-                      Enable180Classification = false, /* 允许识别旋转角度大于90度的文字 */
-                  })
-                  {
-                     // Load local file by following code:
-                     using (Mat src = Cv2.ImDecode(sampleImageData, ImreadModes.Color))
-                      {
-                          PaddleOcrResult result = all.Run(src);
-                          return result;
-                      }
-                  }
+                  return OcrImage(image);
               }).ConfigureAwait(false);
             return task;
         }
+        private PaddleOcrResult OcrImage(Image image)
+        {
+            byte[] sampleImageData = ImageToByte(image);
+            FullOcrModel model = LocalFullModels.ChineseV3;
+            using (PaddleOcrAll all = new PaddleOcrAll(model, PaddleDevice.Mkldnn())
+            {
+                AllowRotateDetection = true, /* 允许识别有角度的文字 */
+                Enable180Classification = false, /* 允许识别旋转角度大于90度的文字 */
+            })
+            {
+                // Load local file by following code:
+                using (Mat src = Cv2.ImDecode(sampleImageData, ImreadModes.Color))
+                {
+                    PaddleOcrResult result = all.Run(src);
+                    return result;
+                }
+            }
+        }
+
         private void MainForm_Load(object sender, EventArgs e)
         {
             _copy.Checked = false;
@@ -347,9 +357,145 @@ namespace HM.PdfOcr
             pdfViewer1.Renderer.ZoomChanged += Renderer_ZoomChanged;
             pdfViewer1.Renderer.BoundedTextHandler += Renderer_BoundedTextHandler;
             _zoom.Text = pdfViewer1.Renderer.Zoom.ToString();
+            Disposed += (s, ea) =>
+            {
+                pictureBox1.Image?.Dispose();
+                pdfViewer1.Document?.Dispose();
+            };
 
-            Disposed += (s, ea) => pdfViewer1.Document?.Dispose();
+            this.pictureBox1.MouseWheel += pictureBox1_MouseWheel;
+            this.pictureBox1.MouseHover += pictureBox1_MouseHover;
+            this.pictureBox1.MouseDown += pictureBox1_MouseDown;
+            this.pictureBox1.MouseMove += pictureBox1_MouseMove;
+            this.pictureBox1.MouseUp += pictureBox1_MouseUp;
+            splitContainer1.Panel1.Resize += (s, n) =>
+            {
+                var width = splitContainer1.Panel1.Width;
+                var height = splitContainer1.Panel1.Height;
+                pictureBox1.Width = width;
+                pictureBox1.Height = height;
+                pictureBox1.Location = new Point(0, 0);
+            };
         }
+
+        #region 图片缩放
+        double zoomfactor = 1.0;
+        int zoompos_x = 0;
+        int zoompos_y = 0;
+        bool Mousedown = false;
+        Point Mousepos = new Point(0, 0);
+        private void pictureBox1_MouseHover(object sender, EventArgs e)
+        {
+            pictureBox1.Focus();
+        }
+
+        private void pictureBox1_MouseWheel(object sender, MouseEventArgs e)
+        {
+            // Mousewheel down
+            if (e.Delta < 0)
+            {
+                ZoomOut();
+            }
+            // Mousewheel up
+            else
+            {
+                ZoomIn();
+            }
+        }
+        private void pictureBox1_MouseDown(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Left)
+            {
+                if (zoomfactor > 1.01)
+                {
+                    Mousepos = e.Location;
+                    Mousedown = true;
+                }
+            }
+
+        }
+
+        private void pictureBox1_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (Mousedown)
+            {
+                int dx = e.X - Mousepos.X;
+                int dy = e.Y - Mousepos.Y;
+                pictureBox1.Location = new Point(pictureBox1.Left + dx, pictureBox1.Top + dy);
+
+                if (zoomfactor > 1.01)
+                {
+                    zoompos_x += (int)(dx / zoomfactor);
+                    zoompos_y += (int)(dy / zoomfactor);
+                }
+            }
+        }
+
+        private void pictureBox1_MouseUp(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Left)
+            {
+                Mousedown = false;
+            }
+        }
+
+        private void ZoomIn()
+        {
+            // With first zoom-step center field of view
+            if (zoomfactor > 0.99 && zoomfactor < 1.01)
+            {
+                zoompos_x = 0;
+                zoompos_y = 0;
+                zoomfactor = 1.5;
+            }
+
+            else if (zoomfactor > 1.49 && zoomfactor < 1.51) zoomfactor = 2.0;
+            else if (zoomfactor > 1.99 && zoomfactor < 2.01) zoomfactor = 2.5;
+            else if (zoomfactor > 2.49 && zoomfactor < 2.51) zoomfactor = 3.0;
+            else if (zoomfactor > 2.99 && zoomfactor < 3.01) zoomfactor = 3.5;
+            else if (zoomfactor > 3.49 && zoomfactor < 3.51) zoomfactor = 4.0;
+
+            ShowPicZoomed(zoomfactor);
+        }
+
+        private void ZoomOut()
+        {
+            if (zoomfactor > 3.99) zoomfactor = 3.5;
+            else if (zoomfactor > 3.49 && zoomfactor < 3.51) zoomfactor = 3.0;
+            else if (zoomfactor > 2.99 && zoomfactor < 3.01) zoomfactor = 2.5;
+            else if (zoomfactor > 2.49 && zoomfactor < 2.51) zoomfactor = 2.0;
+            else if (zoomfactor > 1.99 && zoomfactor < 2.01) zoomfactor = 1.5;
+            else zoomfactor = 1.0;
+
+            ShowPicZoomed(zoomfactor);
+        }
+        private void ShowPicZoomed(double zoomfactor)
+        {
+            var width = splitContainer1.Panel1.Width;
+            var height = splitContainer1.Panel1.Height;
+            if (zoomfactor > 1)
+            {
+                pictureBox1.Width = (int)(width * zoomfactor);
+                pictureBox1.Height = (int)(height * zoomfactor);
+
+                var screensize_x = RectangleToScreen(this.ClientRectangle).Width;
+                var screensize_y = RectangleToScreen(this.ClientRectangle).Height;
+
+                // move picturebox to display desired field of view
+                pictureBox1.Location = new Point((int)(screensize_x / 2 - (width * zoomfactor / 2) + zoompos_x * zoomfactor), (int)(screensize_y / 2 - (height * zoomfactor / 2) + zoompos_y * zoomfactor));
+            }
+            else
+            {
+                pictureBox1.Width = width;
+                pictureBox1.Height = height;
+                pictureBox1.Location = new Point(0, 0);
+            }
+
+            // Update titlebar & text in taskbar
+            _zoom.Text = zoomfactor.ToString();
+        }
+
+        #endregion
 
         void Renderer_DisplayRectangleChanged(object sender, EventArgs e)
         {
@@ -362,49 +508,54 @@ namespace HM.PdfOcr
         }
         private void Renderer_BoundedTextHandler(int page, int x, int y, int x1, int y1, string txt, bool isEdit)
         {
-            if (isEdit)
+            try
             {
-                AppendTextToRich($"页码:{page},x:{x},y:{y},x1:{x1},y1:{y1} \r\n{txt}");
-            }
-            else
-            {
-                AppendTextToRich($"正在提取框选坐标:{page},x:{x},y:{y},x1:{x1},y1:{y1}");
-                System.Drawing.Image image = pdfViewer1.Renderer.GetImage(page);
-                if (image == null)
-                    return;
-                PaddleOcrResult ocrResult = OcrImage(image).Result;
-                var text = ocrResult.Text;
-                var pageBounds = pdfViewer1.Renderer.GetBoundsOffset(page);
-                var sb = new StringBuilder();
-                Graphics g = pdfViewer1.Renderer.CreateGraphics();
-                Pen pen = new Pen(Color.Blue, 2.0f);
-                var pen1 = new Pen(Color.Yellow, 2.0f);
-
-                var pdfrect = new PdfiumViewer.PdfRectangle(page, new RectangleF(Math.Min(x, x1), Math.Min(y, y1), Math.Abs(x1 - x), Math.Abs(y1 - y)));
-                var rect = pdfViewer1.Renderer.BoundsFromPdf(pdfrect);
-                g.DrawRectangle(pen1, rect);
-
-                var showOcr = pdfViewer1.Renderer.GetBounds(page).Width;
-                var backSize = ConvertToRenderSize(pdfViewer1.Document.PageSizes[page].Width * 4 / 3, pdfViewer1.Document.PageSizes[page].Height * 4 / 3, 96, 96, PdfRotation.Rotate0, PdfRenderFlags.Annotations | PdfRenderFlags.CorrectFromDpi);
-                var scaleOcr = backSize.Width / showOcr;
-                var toImageRect = new RectangleF((rect.X - pageBounds.X) * scaleOcr, (rect.Y - pageBounds.Y) * scaleOcr, rect.Width * scaleOcr, rect.Height * scaleOcr);
-
-                foreach (PaddleOcrResultRegion region in ocrResult.Regions)
+                this.ShowLoading();
+                if (isEdit)
                 {
-                    Rect boundRect = region.Rect.BoundingRect();
-                    var rect1 = new Rectangle(boundRect.X + pageBounds.X, boundRect.Y + pageBounds.Y, boundRect.Width, boundRect.Height);
-                    if (rect.Contains(rect1))
-                    {
-                        g.DrawRectangle(pen, rect1);
-                        sb.Append(region.Text + " ");
-                    }
+                    AppendTextToRich($"页码:{page},x:{x},y:{y},x1:{x1},y1:{y1} \r\n{txt}");
                 }
+                else
+                {
+                    AppendTextToRich($"正在提取框选坐标:{page},x:{x},y:{y},x1:{x1},y1:{y1}");
+                    System.Drawing.Image image = pdfViewer1.Renderer.GetImage(page);
+                    if (image == null)
+                        return;
+                    PaddleOcrResult ocrResult = OcrImageAsync(image).Result;
+                    var text = ocrResult.Text;
+                    var pageBounds = pdfViewer1.Renderer.GetBoundsOffset(page);
+                    var sb = new StringBuilder();
+                    Graphics g = pdfViewer1.Renderer.CreateGraphics();
+                    Pen pen = new Pen(Color.Blue, 2.0f);
+                    var pen1 = new Pen(Color.Yellow, 2.0f);
 
-                g.Dispose();
-                txt = sb.ToString();
-                AppendTextToRich($"页码:{page},x:{toImageRect.X},y:{toImageRect.Y},Width:{toImageRect.Width},Hight:{toImageRect.Height} \r\n{txt}");
-                MessageBox.Show("提取成功！");
+                    var pdfrect = new PdfiumViewer.PdfRectangle(page, new RectangleF(Math.Min(x, x1), Math.Min(y, y1), Math.Abs(x1 - x), Math.Abs(y1 - y)));
+                    var rect = pdfViewer1.Renderer.BoundsFromPdf(pdfrect);
+                    g.DrawRectangle(pen1, rect);
+
+                    var showOcr = pdfViewer1.Renderer.GetBounds(page).Width;
+                    var backSize = ConvertToRenderSize(pdfViewer1.Document.PageSizes[page].Width * 4 / 3, pdfViewer1.Document.PageSizes[page].Height * 4 / 3, 96, 96, PdfRotation.Rotate0, PdfRenderFlags.Annotations | PdfRenderFlags.CorrectFromDpi);
+                    var scaleOcr = backSize.Width / showOcr;
+                    var toImageRect = new RectangleF((rect.X - pageBounds.X) * scaleOcr, (rect.Y - pageBounds.Y) * scaleOcr, rect.Width * scaleOcr, rect.Height * scaleOcr);
+
+                    foreach (PaddleOcrResultRegion region in ocrResult.Regions)
+                    {
+                        Rect boundRect = region.Rect.BoundingRect();
+                        var rect1 = new Rectangle(boundRect.X + pageBounds.X, boundRect.Y + pageBounds.Y, boundRect.Width, boundRect.Height);
+                        if (rect.Contains(rect1))
+                        {
+                            g.DrawRectangle(pen, rect1);
+                            sb.Append(region.Text + " ");
+                        }
+                    }
+
+                    g.Dispose();
+                    txt = sb.ToString();
+                    AppendTextToRich($"页码:{page},x:{toImageRect.X},y:{toImageRect.Y},Width:{toImageRect.Width},Hight:{toImageRect.Height} \r\n{txt}");
+                }
             }
+            finally { this.CloseLoading(); }
+            MessageBox.Show("提取成功！");
         }
 
         private void _openFile_Click(object sender, EventArgs e)
@@ -438,12 +589,21 @@ namespace HM.PdfOcr
         {
             if (fileType == FileType.PDF)
                 pdfViewer1.Renderer.ZoomIn();
+            else
+            {
+                ZoomIn();
+            }
         }
 
         private void toolStripButton3_Click(object sender, EventArgs e)
         {
             if (fileType == FileType.PDF)
                 pdfViewer1.Renderer.ZoomOut();
+            else
+            {
+                ZoomOut();
+            }
+
         }
         private void _matching_Click(object sender, EventArgs e)
         {
@@ -479,75 +639,101 @@ namespace HM.PdfOcr
         }
         private async void _getTextFromPage_Click(object sender, EventArgs e)
         {
-            if (fileType == FileType.PDF)
+            try
             {
-                int page = pdfViewer1.Renderer.Page;
-                if (pdfViewer1.Document.GetPdfEditable(page))
+                this.ShowLoading();
+                if (fileType == FileType.PDF)
                 {
-                    string text = pdfViewer1.Document.GetPdfText(page);
+                    int page = pdfViewer1.Renderer.Page;
+                    if (pdfViewer1.Document.GetPdfEditable(page))
+                    {
+                        string text = pdfViewer1.Document.GetPdfText(page);
 
-                    AppendTextToRich($"页码： {page} \r\n{text}");
+                        AppendTextToRich($"页码： {page} \r\n{text}");
+                    }
+                    else
+                    {
+                        AppendTextToRich($"正在提取第{page}页");
+                        System.Drawing.Image image = pdfViewer1.Renderer.GetImage(page);
+                        PaddleOcrResult result = await OcrImageAsync(image);
+                        var text = result.Text;
+                        AppendTextToRich($"页码： {page} \r\n{text}");
+                    }
                 }
                 else
                 {
-                    AppendTextToRich($"正在提取第{page}页");
-                    System.Drawing.Image image = pdfViewer1.Renderer.GetImage(page);
-                    PaddleOcrResult result = await OcrImage(image);
+                    AppendTextToRich($"开始提取图片");
+                    var image = pictureBox1.Image;
+                    PaddleOcrResult result = await OcrImageAsync(image);
                     var text = result.Text;
-                    AppendTextToRich($"页码： {page} \r\n{text}");
+                    AppendTextToRich($"解析图片： \r\n{text}");
+                    int n = 1;
+                    foreach (PaddleOcrResultRegion region in result.Regions)
+                    {
+                        Rect boundRect = region.Rect.BoundingRect();
+                        var rect1 = new Rectangle(boundRect.X, boundRect.Y, boundRect.Width, boundRect.Height);
+                        if (region.Score > 0.5)
+                        {
+                            using (var pen = new Pen(Color.Blue, 2.0f))
+                            using (Graphics graphics = Graphics.FromImage(image))
+                            {
+                                graphics.DrawString(n.ToString(), new Font("宋体", 15), Brushes.Red, boundRect.X + boundRect.Width / 2, boundRect.Y + boundRect.Height / 2 - 10);
+                                graphics.DrawRectangle(pen, rect1);
+                            }
+                            AppendTextToRich($"Text: {region.Text}, Score: {region.Score}, RectCenter: {region.Rect.Center}, RectSize:    {region.Rect.Size}, Angle: {region.Rect.Angle}");
+                            n++;
+                        }
+                    }
+                    pictureBox1.Refresh();
                 }
             }
-            else
+            finally
             {
-                var image = pictureBox1.Image;
-                PaddleOcrResult result = await OcrImage(image);
-                var text = result.Text;
-                AppendTextToRich($"解析图片： \r\n{text}");
-                int n = 1;
-                foreach (PaddleOcrResultRegion region in result.Regions)
-                {
-                    Rect boundRect = region.Rect.BoundingRect();
-                    var rect1 = new Rectangle(boundRect.X, boundRect.Y, boundRect.Width, boundRect.Height);
-                    if (region.Score > 0.5)
-                    {
-                        using (var pen = new Pen(Color.Blue, 2.0f))
-                        using (Graphics graphics = Graphics.FromImage(image))
-                        {
-                            graphics.DrawString(n.ToString(), new Font("宋体", 15), Brushes.Red, boundRect.X + boundRect.Width / 2, boundRect.Y + boundRect.Height / 2 - 10);
-                            graphics.DrawRectangle(pen, rect1);
-                        }
-                        AppendTextToRich($"Text: {region.Text}, Score: {region.Score}, RectCenter: {region.Rect.Center}, RectSize:    {region.Rect.Size}, Angle: {region.Rect.Angle}");
-                        n++;
-                    }
-                }
+                this.CloseLoading();
             }
         }
         private void _fitBest_Click(object sender, EventArgs e)
         {
             if (fileType == FileType.PDF)
                 FitPage(PdfViewerZoomMode.FitBest);
+            else
+            {
+                zoomfactor = 1;
+                ZoomOut();
+            }
         }
         private async void 转换双层pdfToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (fileType == FileType.PDF)
+            try
             {
-                var newFile = $@"{Path.GetDirectoryName(fileName)}\{Path.GetFileNameWithoutExtension(fileName)}_Double.pdf";
-                await GengeneratePDF(newFile, pdfViewer1.Document, true);
+                this.ShowLoading();
+                if (fileType == FileType.PDF)
+                {
+                    var newFile = $@"{Path.GetDirectoryName(fileName)}\{Path.GetFileNameWithoutExtension(fileName)}_Double.pdf";
+                    await GengeneratePDF(newFile, pdfViewer1.Document, true);
+                }
             }
+            finally { this.CloseLoading(); }
+
         }
 
         private async void 直接生成pdfToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (fileType == FileType.PDF)
+            try
             {
-                var newFile = $@"{Path.GetDirectoryName(fileName)}\{Path.GetFileNameWithoutExtension(fileName)}_NoDouble.pdf";
-                await GengeneratePDF(newFile, pdfViewer1.Document, false);
+                this.ShowLoading();
+                if (fileType == FileType.PDF)
+                {
+                    var newFile = $@"{Path.GetDirectoryName(fileName)}\{Path.GetFileNameWithoutExtension(fileName)}_NoDouble.pdf";
+                    await GengeneratePDF(newFile, pdfViewer1.Document, false);
+                }
             }
+            finally { this.CloseLoading(); }
         }
 
         private void toolStripButton5_Click(object sender, EventArgs e)
         {
-            var show=new AboutForm();
+            var show = new AboutForm();
             show.ShowDialog(this);
         }
     }

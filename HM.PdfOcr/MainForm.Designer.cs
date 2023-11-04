@@ -52,13 +52,13 @@
             this.toolStripDropDownButton1 = new System.Windows.Forms.ToolStripDropDownButton();
             this.转换双层pdfToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.直接生成pdfToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripButton5 = new System.Windows.Forms.ToolStripButton();
             this.pdfViewerContextMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.copyToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.selectAllToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.richTextBox1 = new System.Windows.Forms.RichTextBox();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
-            this.toolStripButton5 = new System.Windows.Forms.ToolStripButton();
             this.toolStrip1.SuspendLayout();
             this.pdfViewerContextMenu.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
@@ -252,16 +252,26 @@
             // 转换双层pdfToolStripMenuItem
             // 
             this.转换双层pdfToolStripMenuItem.Name = "转换双层pdfToolStripMenuItem";
-            this.转换双层pdfToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.转换双层pdfToolStripMenuItem.Size = new System.Drawing.Size(144, 22);
             this.转换双层pdfToolStripMenuItem.Text = "转换双层pdf";
             this.转换双层pdfToolStripMenuItem.Click += new System.EventHandler(this.转换双层pdfToolStripMenuItem_Click);
             // 
             // 直接生成pdfToolStripMenuItem
             // 
             this.直接生成pdfToolStripMenuItem.Name = "直接生成pdfToolStripMenuItem";
-            this.直接生成pdfToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.直接生成pdfToolStripMenuItem.Size = new System.Drawing.Size(144, 22);
             this.直接生成pdfToolStripMenuItem.Text = "直接生成pdf";
             this.直接生成pdfToolStripMenuItem.Click += new System.EventHandler(this.直接生成pdfToolStripMenuItem_Click);
+            // 
+            // toolStripButton5
+            // 
+            this.toolStripButton5.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.toolStripButton5.Image = ((System.Drawing.Image)(resources.GetObject("toolStripButton5.Image")));
+            this.toolStripButton5.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.toolStripButton5.Name = "toolStripButton5";
+            this.toolStripButton5.Size = new System.Drawing.Size(36, 22);
+            this.toolStripButton5.Text = "关于";
+            this.toolStripButton5.Click += new System.EventHandler(this.toolStripButton5_Click);
             // 
             // pdfViewerContextMenu
             // 
@@ -313,23 +323,12 @@
             // pictureBox1
             // 
             this.pictureBox1.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
-            this.pictureBox1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.pictureBox1.Location = new System.Drawing.Point(0, 0);
             this.pictureBox1.Name = "pictureBox1";
             this.pictureBox1.Size = new System.Drawing.Size(757, 689);
             this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.pictureBox1.TabIndex = 9;
             this.pictureBox1.TabStop = false;
-            // 
-            // toolStripButton5
-            // 
-            this.toolStripButton5.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
-            this.toolStripButton5.Image = ((System.Drawing.Image)(resources.GetObject("toolStripButton5.Image")));
-            this.toolStripButton5.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.toolStripButton5.Name = "toolStripButton5";
-            this.toolStripButton5.Size = new System.Drawing.Size(36, 22);
-            this.toolStripButton5.Text = "关于";
-            this.toolStripButton5.Click += new System.EventHandler(this.toolStripButton5_Click);
             // 
             // MainForm
             // 
