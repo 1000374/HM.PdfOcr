@@ -2,10 +2,12 @@
 using HM.PdfOcr.UCControl;
 using OpenCvSharp;
 using PdfiumViewer;
+using PdfSharp;
 using PdfSharp.Drawing;
 using PdfSharp.Fonts;
 using PdfSharp.Pdf;
 using PdfSharp.Pdf.Advanced;
+using PdfSharp.Pdf.IO;
 using Sdcb.PaddleInference;
 using Sdcb.PaddleOCR;
 using Sdcb.PaddleOCR.Models;
@@ -14,14 +16,17 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Xml.Linq;
 using PdfDocument = PdfiumViewer.PdfDocument;
 using Point = System.Drawing.Point;
 
@@ -60,6 +65,9 @@ namespace HM.PdfOcr
                     pictureBox1.Image = null;
                     pdfViewer1.Document?.Dispose();
                     pdfViewer1.Document = OpenDocument(fileName);
+                    toolStripButton7.Enabled = true;
+                    pdfViewer1.Renderer.CursorMode = PdfViewerCursorMode.TextSelection;
+                    _copy.Checked = true;
                 }
                 else
                 {
@@ -84,7 +92,8 @@ namespace HM.PdfOcr
         private PdfDocument OpenDocument(string fileName)
         {
             try
-            {
+            {   // Remove ReadOnly attribute from the copy.
+                File.SetAttributes(fileName, File.GetAttributes(fileName) & ~FileAttributes.ReadOnly);
                 return PdfDocument.Load(this, new MemoryStream(File.ReadAllBytes(fileName)));
             }
             catch (Exception ex)
@@ -341,11 +350,13 @@ namespace HM.PdfOcr
             toolStripButton2.Enabled = false;
             toolStripButton3.Enabled = false;
             toolStripButton4.Enabled = false;
+            toolStripButton7.Enabled = false;
             _fitBest.Enabled = false;
             _matching.Enabled = false;
             _getTextFromPage.Enabled = false;
             _copy.Enabled = false;
             toolStripDropDownButton1.Enabled = false;
+            pdfViewer1.ShowBookmarks = false;
             // Get the EZFontResolver.
             EZFontResolver fontResolver = EZFontResolver.Get;
             // Assign it to PDFsharp.
@@ -736,6 +747,458 @@ namespace HM.PdfOcr
             var show = new AboutForm();
             show.ShowDialog(this);
         }
+
+        private void copyToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            pdfViewer1.Renderer.CopySelection();
+        }
+
+        private void selectAllToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            pdfViewer1.Renderer.SelectAll();
+        }
+
+        private void 取消选中ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            pdfViewer1.Renderer.DeSelectAll();
+        }
+
+        private void 旋转ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (fileType == FileType.PDF)
+            {
+                var document = pdfViewer1.Document;
+                int page = pdfViewer1.Renderer.Page;
+                var rotate = (int)document.GetRotation(page);
+                if (rotate < 3)
+                    rotate++;
+                else
+                    rotate = 0;
+                pdfViewer1.Document = null;
+                document.RotatePage(page, (PdfRotation)rotate);
+                var memoryStream = new MemoryStream();
+                document.Save(memoryStream);
+                pdfViewer1.Document = PdfDocument.Load(this, memoryStream);
+                pdfViewer1.Renderer.Page = page;
+            }
+        }
+        private void 删除ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (fileType == FileType.PDF)
+            {
+                int page = pdfViewer1.Renderer.Page;
+                pdfViewer1.Document.DeletePage(page);
+            }
+        }
+        private void toolStripButton7_Click(object sender, EventArgs e)
+        {
+            toolStripButton7.Checked = !toolStripButton7.Checked;
+            pdfViewer1.ShowBookmarks = toolStripButton7.Checked;
+        }
+
+        private void toolStripButton6_Click(object sender, EventArgs e)
+        {
+            toolStripButton6.Checked = !toolStripButton6.Checked;
+            splitContainer1.Panel2Collapsed = toolStripButton6.Checked;
+        }
+
+        private void 合并PDFToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (fileType == FileType.PDF)
+            {
+                try
+                {
+                    this.ShowLoading();
+                    var file = "";
+                    using (var form = new OpenFileDialog())
+                    {
+                        form.Filter = "PDF Files (*.pdf)|*.pdf|All Files (*.*)|*.*";
+                        form.RestoreDirectory = true;
+                        form.Title = "Open PDF File";
+
+                        if (form.ShowDialog(this) != DialogResult.OK)
+                        {
+                            Dispose();
+                            return;
+                        }
+                        file = form.FileName;
+                    }
+                    var document = pdfViewer1.Document;
+                    var doc = PdfSupport.MergePDF(document, OpenDocument(file));
+                    {
+                        if (doc != null)
+                        {
+                            pdfViewer1.Document = null;
+                            pdfViewer1.Document = doc;
+                        }
+                    }
+                    AppendTextToRich($"合并pdf已完成{file}");
+                }
+                finally { this.CloseLoading(); }
+            }
+        }
+
+        private void 拆分PDFToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (fileType == FileType.PDF)
+            {
+                try
+                {
+                    this.ShowLoading();
+                    var path = Path.Combine(Path.GetDirectoryName(fileName), Path.GetFileNameWithoutExtension(fileName));
+                    if (!Directory.Exists(path))
+                    {
+                        Directory.CreateDirectory(path);
+                    }
+                    var document = pdfViewer1.Document;
+                    {
+                        for (int i = 0; i < document.PageCount; i++)
+                        {
+                            var filePath = Path.Combine(path, $"{i}.pdf");
+                            using (var doc = PdfSupport.GetPDFPage(document, i + 1))
+                            {
+                                doc.Save(filePath);
+                            }
+                        }
+                    }
+                    AppendTextToRich($"拆分pdf已完成{path}");
+                }
+                finally { this.CloseLoading(); }
+            }
+        }
+        private void pdf信息ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (fileType == FileType.PDF)
+            {
+                PdfInformation info = pdfViewer1.Document.GetInformation();
+                StringBuilder sz = new StringBuilder();
+                sz.AppendLine($"Author: {info.Author}");
+                sz.AppendLine($"Creator: {info.Creator}");
+                sz.AppendLine($"Keywords: {info.Keywords}");
+                sz.AppendLine($"Producer: {info.Producer}");
+                sz.AppendLine($"Subject: {info.Subject}");
+                sz.AppendLine($"Title: {info.Title}");
+                sz.AppendLine($"Create Date: {info.CreationDate}");
+                sz.AppendLine($"Modified Date: {info.ModificationDate}");
+                AppendTextToRich(sz.ToString());
+
+            }
+        }
+
+        private void pdf转成图片ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (fileType == FileType.PDF)
+            {
+                try
+                {
+                    this.ShowLoading();
+                    var document = pdfViewer1.Document;
+                    var path = Path.Combine(Path.GetDirectoryName(fileName), Path.GetFileNameWithoutExtension(fileName));
+                    if (!Directory.Exists(path))
+                    {
+                        Directory.CreateDirectory(path);
+                    }
+                    var dpiX = 96 * 2;
+                    var dpiY = 96 * 2;
+                    for (int i = 0; i < document.PageCount; i++)
+                    {
+                        using (var image = document.Render(i, (int)document.PageSizes[i].Width * 4 / 3, (int)document.PageSizes[i].Height * 4 / 3, dpiX, dpiY, PdfRotation.Rotate0, PdfRenderFlags.Annotations | PdfRenderFlags.CorrectFromDpi))
+                        {
+                            image.Save(Path.Combine(path, i + ".png"));
+                        }
+                    }
+                    AppendTextToRich($"pdf转图片已完成{path}");
+                }
+                finally
+                {
+                    this.CloseLoading();
+                }
+            }
+        }
+
+        private void 导出pdf内资源图片ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (fileType == FileType.PDF)
+            {
+                try
+                {
+                    this.ShowLoading();
+                    var path = Path.Combine(Path.GetDirectoryName(fileName), Path.GetFileNameWithoutExtension(fileName));
+                    if (!Directory.Exists(path))
+                    {
+                        Directory.CreateDirectory(path);
+                    }
+                    using (var memoryStream = new MemoryStream())
+                    {
+                        pdfViewer1.Document.Save(memoryStream);
+                        var document = PdfReader.Open(memoryStream);
+                        var imageCount = 0;
+                        // Iterate the pages.
+                        foreach (var page in document.Pages)
+                        {
+                            // Get the resources dictionary.
+                            var resources = page.Elements.GetDictionary("/Resources");
+                            if (resources == null)
+                                continue;
+
+                            // Get the external objects dictionary.
+                            var xObjects = resources.Elements.GetDictionary("/XObject");
+                            if (xObjects == null)
+                                continue;
+
+                            var items = xObjects.Elements.Values;
+                            // Iterate the references to external objects.
+                            foreach (var item in items)
+                            {
+                                var reference = item as PdfReference;
+                                if (reference == null)
+                                    continue;
+
+                                var xObject = reference.Value as PdfDictionary;
+                                // Is external object an image?
+                                if (xObject != null && xObject.Elements.GetString("/Subtype") == "/Image")
+                                {
+                                    PDFHelper.ExportImage(xObject, path, ref imageCount);
+                                }
+                            }
+                        }
+                        AppendTextToRich($"导出pdf图片成功总数{imageCount} {path}");
+                    }
+                }
+                finally { this.CloseLoading(); }
+            }
+        }
+
+        private void 两页pdf合并成页ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (fileType == FileType.PDF)
+            {
+                using (var stream = new MemoryStream())
+                {
+                    pdfViewer1.Document.Save(stream);
+                    stream.Position = 0;
+
+                    // Create the output document.
+                    var outputDocument = new PdfSharp.Pdf.PdfDocument();
+                    var outputmemoryStream = new MemoryStream();
+                    // Show single pages.
+                    // (Note: one page contains two pages from the source document)
+                    outputDocument.PageLayout = PdfPageLayout.SinglePage;
+
+                    var font = new XFont("微软雅黑", 8, XFontStyle.Regular);
+                    var format = new XStringFormat();
+                    format.Alignment = XStringAlignment.Center;
+                    format.LineAlignment = XLineAlignment.Far;
+
+                    // Open the external document as XPdfForm object.
+                    var form = XPdfForm.FromStream(stream);
+
+                    for (var idx = 0; idx < form.PageCount; idx += 2)
+                    {
+                        // Add a new page to the output document.
+                        var page = outputDocument.AddPage();
+                        page.Orientation = PageOrientation.Landscape;
+                        double width = page.Width;
+                        double height = page.Height;
+
+                        var gfx = XGraphics.FromPdfPage(page);
+
+                        // Set the page number (which is one-based).
+                        form.PageNumber = idx + 1;
+
+                        var box = new XRect(0, 0, width / 2, height);
+                        // Draw the page identified by the page number like an image.
+                        gfx.DrawImage(form, box);
+
+                        // Write page number on each page.
+                        box.Inflate(0, -10);
+                        gfx.DrawString(String.Format("- {0} -", idx + 1),
+                            font, XBrushes.Red, box, format);
+
+                        if (idx + 1 >= form.PageCount)
+                            continue;
+
+                        // Set the page number (which is one-based).
+                        form.PageNumber = idx + 2;
+
+                        box = new XRect(width / 2, 0, width / 2, height);
+                        // Draw the page identified by the page number like an image.
+                        gfx.DrawImage(form, box);
+
+                        // Write page number on each page.
+                        box.Inflate(0, -10);
+                        gfx.DrawString(String.Format("- {0} -", idx + 2),
+                            font, XBrushes.Red, box, format);
+                    }
+                    outputDocument.Save(outputmemoryStream);
+                    pdfViewer1.Document = null;
+                    pdfViewer1.Document = PdfDocument.Load(this, outputmemoryStream);
+                }
+            }
+        }
+
+        private void 添加密码ToolStripMenuItem1_Click(object sender, EventArgs e)
+        {
+            if (fileType == FileType.PDF)
+            {
+                using (var form = new PasswordForm())
+                {
+                    if (form.ShowDialog(this) == DialogResult.OK)
+                    {
+                        var path = Path.Combine(Path.GetDirectoryName(fileName), Path.GetFileNameWithoutExtension(fileName));
+                        if (!Directory.Exists(path))
+                        {
+                            Directory.CreateDirectory(path);
+                        }
+                        var txt = form.Password;
+                        using (var stream = new MemoryStream())
+                        {
+                            pdfViewer1.Document.Save(stream);
+                            stream.Position = 0;
+                            // Open an existing document. Providing an unrequired password is ignored.
+                            var document = PdfReader.Open(stream);
+
+                            var securitySettings = document.SecuritySettings;
+
+                            // Setting one of the passwords automatically sets the security level to 
+                            // PdfDocumentSecurityLevel.Encrypted128Bit.
+                            securitySettings.UserPassword = txt;
+                            //securitySettings.OwnerPassword = "owner";
+
+                            // Don't use 40 bit encryption unless needed for compatibility.
+                            //securitySettings.DocumentSecurityLevel = PdfDocumentSecurityLevel.Encrypted40Bit;
+
+                            // Restrict some rights.
+                            securitySettings.PermitAccessibilityExtractContent = false;
+                            securitySettings.PermitAnnotations = false;
+                            securitySettings.PermitAssembleDocument = false;
+                            securitySettings.PermitExtractContent = false;
+                            securitySettings.PermitFormsFill = true;
+                            securitySettings.PermitFullQualityPrint = false;
+                            securitySettings.PermitModifyDocument = true;
+                            securitySettings.PermitPrint = false;
+
+                            // Save the document...
+                            document.Save(Path.Combine(path, Path.GetFileName(fileName)));
+                        }
+                        AppendTextToRich($"添加密码成功{path}");
+                    }
+                }
+            }
+
+        }
+
+        private void 去除ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (fileType == FileType.PDF)
+            {
+                using (var form = new PasswordForm())
+                {
+                    if (form.ShowDialog(this) == DialogResult.OK)
+                    {
+                        var path = Path.Combine(Path.GetDirectoryName(fileName), Path.GetFileNameWithoutExtension(fileName));
+                        if (!Directory.Exists(path))
+                        {
+                            Directory.CreateDirectory(path);
+                        }
+                        var txt = form.Password;
+                        using (var stream = new MemoryStream())
+                        {
+                            pdfViewer1.Document.Save(stream);
+                            stream.Position = 0;
+                            // Open an existing document. Providing an unrequired password is ignored.
+                            var document = PdfReader.Open(stream, txt, PdfDocumentOpenMode.Modify);
+                            document.SecuritySettings.DocumentSecurityLevel = PdfSharp.Pdf.Security.PdfDocumentSecurityLevel.None;
+                            document.Save(Path.Combine(path, Path.GetFileName(fileName)));
+                        }
+                        AppendTextToRich($"去除密码成功{path}");
+                    }
+                }
+            }
+        }
+
+        private void 添加水印ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (fileType == FileType.PDF)
+            {
+                var watermark = "";
+                var fontsize = 50;
+                var waterIndex = 0;
+                var color = Color.Red;
+                var water = new WatermarkForm();
+                if (water.ShowDialog(this) == DialogResult.OK)
+                {
+                    watermark = water.WaterMark;
+                    fontsize = water.FontSize;
+                    waterIndex = water.WaterIndex;
+                    color = water.WaterColor;
+                }
+                else
+                {
+                    return;
+                }
+                using (var stream = new MemoryStream())
+                {
+                    pdfViewer1.Document.Save(stream);
+                    stream.Position = 0;
+                    var font = new XFont("微软雅黑", fontsize, XFontStyle.Regular, XPdfFontOptions.UnicodeDefault);
+                    var document = PdfReader.Open(stream);
+
+                    // Set version to PDF 1.4 (Acrobat 5) because we use transparency.
+                    if (document.Version < 14)
+                        document.Version = 14;
+
+                    for (var idx = 0; idx < document.Pages.Count; idx++)
+                    {
+                        var page = document.Pages[idx];
+                        var gfx = XGraphics.FromPdfPage(page);
+                        var size = gfx.MeasureString(watermark, font);
+                        gfx.TranslateTransform(page.Width / 2, page.Height / 2);
+                        gfx.RotateTransform(-Math.Atan(page.Height / page.Width) * 180 / Math.PI);
+                        gfx.TranslateTransform(-page.Width / 2, -page.Height / 2);
+                        if (waterIndex == 0)
+                        {
+                            var format = new XStringFormat();
+                            format.Alignment = XStringAlignment.Near;
+                            format.LineAlignment = XLineAlignment.Near;
+                            XBrush brush = new XSolidBrush(XColor.FromArgb(color));
+                            gfx.DrawString(watermark, font, brush,
+                                new XPoint((page.Width - size.Width) / 2, (page.Height - size.Height) / 2),
+                                format);
+                        }
+                        else if (waterIndex == 1)
+                        {
+                            var path = new XGraphicsPath();
+                            var format = new XStringFormat();
+                            format.Alignment = XStringAlignment.Near;
+                            format.LineAlignment = XLineAlignment.Near;
+                            path.AddString(watermark, font.FontFamily, XFontStyle.BoldItalic, fontsize,
+                            new XPoint((page.Width - size.Width) / 2, (page.Height - size.Height) / 2),
+                                format);
+                            var pen = new XPen(XColor.FromArgb(color), 2);
+                            gfx.DrawPath(pen, path);
+                        } 
+                        if (waterIndex == 2)
+                        {
+                            var path = new XGraphicsPath();
+                            var format = new XStringFormat();
+                            format.Alignment = XStringAlignment.Near;
+                            format.LineAlignment = XLineAlignment.Near;
+                            path.AddString(watermark, font.FontFamily, XFontStyle.BoldItalic, fontsize,
+                                new XPoint((page.Width - size.Width) / 2, (page.Height - size.Height) / 2),
+                                format);                 
+                            var pen = new XPen(XColor.FromArgb(50, 75, 0, 130), 3);
+                            XBrush brush = new XSolidBrush(XColor.FromArgb(color));
+                            gfx.DrawPath(pen, brush, path);
+                        }
+                    }
+                    var outputmemoryStream = new MemoryStream();
+                    document.Save(outputmemoryStream);
+                    pdfViewer1.Document = null;
+                    pdfViewer1.Document = PdfDocument.Load(this, outputmemoryStream);
+                }
+            }
+        } 
     }
 
     enum FileType

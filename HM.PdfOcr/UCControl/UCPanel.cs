@@ -47,7 +47,6 @@ namespace HM.PdfOcr.UCControl
             {
                 e.Graphics.FillRectangle(brush, this.ClientRectangle);
             }
-            Console.WriteLine(this.BackColor.ToArgb().ToString());
             base.OnPaint(e);
         }
     }

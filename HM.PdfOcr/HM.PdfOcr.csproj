@@ -137,6 +137,7 @@
     <Compile Include="AboutForm.Designer.cs">
       <DependentUpon>AboutForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="PDFHelper.cs" />
     <Compile Include="UCControl\CompentExtension.cs" />
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
@@ -159,6 +160,12 @@
     <Compile Include="UCControl\WaitingForm.Designer.cs">
       <DependentUpon>WaitingForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="WatermarkForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="WatermarkForm.Designer.cs">
+      <DependentUpon>WatermarkForm.cs</DependentUpon>
+    </Compile>
     <EmbeddedResource Include="AboutForm.resx">
       <DependentUpon>AboutForm.cs</DependentUpon>
     </EmbeddedResource>
@@ -173,9 +180,13 @@
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
     </Compile>
     <EmbeddedResource Include="UCControl\WaitingForm.resx">
       <DependentUpon>WaitingForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="WatermarkForm.resx">
+      <DependentUpon>WatermarkForm.cs</DependentUpon>
     </EmbeddedResource>
     <None Include="fonts\msyh.ttf">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>

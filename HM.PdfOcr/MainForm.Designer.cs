@@ -30,7 +30,6 @@
         {
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
-            this.pdfViewer1 = new PdfiumViewer.PdfViewer();
             this.toolStrip1 = new System.Windows.Forms.ToolStrip();
             this._openFile = new System.Windows.Forms.ToolStripButton();
             this.toolStripLabel1 = new System.Windows.Forms.ToolStripLabel();
@@ -49,16 +48,33 @@
             this._matching = new System.Windows.Forms.ToolStripButton();
             this._getTextFromPage = new System.Windows.Forms.ToolStripButton();
             this._copy = new System.Windows.Forms.ToolStripButton();
+            this.toolStripButton7 = new System.Windows.Forms.ToolStripButton();
+            this.toolStripButton6 = new System.Windows.Forms.ToolStripButton();
             this.toolStripDropDownButton1 = new System.Windows.Forms.ToolStripDropDownButton();
             this.转换双层pdfToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.直接生成pdfToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.pdf操作ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.合并ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.拆分ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.转成图片ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.页合并成1页ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.导出内嵌图片ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.添加水印ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.密码ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.添加密码ToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
+            this.去除ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.pdf信息ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripButton5 = new System.Windows.Forms.ToolStripButton();
             this.pdfViewerContextMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.copyToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.selectAllToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.取消选中ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.旋转ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.richTextBox1 = new System.Windows.Forms.RichTextBox();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
+            this.pdfViewer1 = new PdfiumViewer.PdfViewer();
+            this.删除ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStrip1.SuspendLayout();
             this.pdfViewerContextMenu.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
@@ -67,14 +83,6 @@
             this.splitContainer1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.SuspendLayout();
-            // 
-            // pdfViewer1
-            // 
-            this.pdfViewer1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.pdfViewer1.Location = new System.Drawing.Point(0, 0);
-            this.pdfViewer1.Name = "pdfViewer1";
-            this.pdfViewer1.Size = new System.Drawing.Size(757, 689);
-            this.pdfViewer1.TabIndex = 8;
             // 
             // toolStrip1
             // 
@@ -96,6 +104,8 @@
             this._matching,
             this._getTextFromPage,
             this._copy,
+            this.toolStripButton7,
+            this.toolStripButton6,
             this.toolStripDropDownButton1,
             this.toolStripButton5});
             this.toolStrip1.Location = new System.Drawing.Point(0, 0);
@@ -237,12 +247,35 @@
             this._copy.Text = "复制";
             this._copy.Click += new System.EventHandler(this._copy_Click);
             // 
+            // toolStripButton7
+            // 
+            this.toolStripButton7.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.toolStripButton7.Image = ((System.Drawing.Image)(resources.GetObject("toolStripButton7.Image")));
+            this.toolStripButton7.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.toolStripButton7.Name = "toolStripButton7";
+            this.toolStripButton7.Size = new System.Drawing.Size(36, 22);
+            this.toolStripButton7.Text = "书签";
+            this.toolStripButton7.Click += new System.EventHandler(this.toolStripButton7_Click);
+            // 
+            // toolStripButton6
+            // 
+            this.toolStripButton6.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.toolStripButton6.Image = ((System.Drawing.Image)(resources.GetObject("toolStripButton6.Image")));
+            this.toolStripButton6.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.toolStripButton6.Name = "toolStripButton6";
+            this.toolStripButton6.Size = new System.Drawing.Size(48, 22);
+            this.toolStripButton6.Text = "结果栏";
+            this.toolStripButton6.Click += new System.EventHandler(this.toolStripButton6_Click);
+            // 
             // toolStripDropDownButton1
             // 
             this.toolStripDropDownButton1.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
             this.toolStripDropDownButton1.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.转换双层pdfToolStripMenuItem,
-            this.直接生成pdfToolStripMenuItem});
+            this.直接生成pdfToolStripMenuItem,
+            this.pdf操作ToolStripMenuItem,
+            this.密码ToolStripMenuItem,
+            this.pdf信息ToolStripMenuItem});
             this.toolStripDropDownButton1.Image = ((System.Drawing.Image)(resources.GetObject("toolStripDropDownButton1.Image")));
             this.toolStripDropDownButton1.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.toolStripDropDownButton1.Name = "toolStripDropDownButton1";
@@ -263,6 +296,91 @@
             this.直接生成pdfToolStripMenuItem.Text = "直接生成pdf";
             this.直接生成pdfToolStripMenuItem.Click += new System.EventHandler(this.直接生成pdfToolStripMenuItem_Click);
             // 
+            // pdf操作ToolStripMenuItem
+            // 
+            this.pdf操作ToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.合并ToolStripMenuItem,
+            this.拆分ToolStripMenuItem,
+            this.转成图片ToolStripMenuItem,
+            this.页合并成1页ToolStripMenuItem,
+            this.导出内嵌图片ToolStripMenuItem,
+            this.添加水印ToolStripMenuItem});
+            this.pdf操作ToolStripMenuItem.Name = "pdf操作ToolStripMenuItem";
+            this.pdf操作ToolStripMenuItem.Size = new System.Drawing.Size(144, 22);
+            this.pdf操作ToolStripMenuItem.Text = "pdf操作";
+            // 
+            // 合并ToolStripMenuItem
+            // 
+            this.合并ToolStripMenuItem.Name = "合并ToolStripMenuItem";
+            this.合并ToolStripMenuItem.Size = new System.Drawing.Size(150, 22);
+            this.合并ToolStripMenuItem.Text = "合并";
+            this.合并ToolStripMenuItem.Click += new System.EventHandler(this.合并PDFToolStripMenuItem_Click);
+            // 
+            // 拆分ToolStripMenuItem
+            // 
+            this.拆分ToolStripMenuItem.Name = "拆分ToolStripMenuItem";
+            this.拆分ToolStripMenuItem.Size = new System.Drawing.Size(150, 22);
+            this.拆分ToolStripMenuItem.Text = "拆分";
+            this.拆分ToolStripMenuItem.Click += new System.EventHandler(this.拆分PDFToolStripMenuItem_Click);
+            // 
+            // 转成图片ToolStripMenuItem
+            // 
+            this.转成图片ToolStripMenuItem.Name = "转成图片ToolStripMenuItem";
+            this.转成图片ToolStripMenuItem.Size = new System.Drawing.Size(150, 22);
+            this.转成图片ToolStripMenuItem.Text = "转成图片";
+            this.转成图片ToolStripMenuItem.Click += new System.EventHandler(this.pdf转成图片ToolStripMenuItem_Click);
+            // 
+            // 页合并成1页ToolStripMenuItem
+            // 
+            this.页合并成1页ToolStripMenuItem.Name = "页合并成1页ToolStripMenuItem";
+            this.页合并成1页ToolStripMenuItem.Size = new System.Drawing.Size(150, 22);
+            this.页合并成1页ToolStripMenuItem.Text = "2页合并成1页";
+            this.页合并成1页ToolStripMenuItem.Click += new System.EventHandler(this.两页pdf合并成页ToolStripMenuItem_Click);
+            // 
+            // 导出内嵌图片ToolStripMenuItem
+            // 
+            this.导出内嵌图片ToolStripMenuItem.Name = "导出内嵌图片ToolStripMenuItem";
+            this.导出内嵌图片ToolStripMenuItem.Size = new System.Drawing.Size(150, 22);
+            this.导出内嵌图片ToolStripMenuItem.Text = "导出内嵌图片";
+            this.导出内嵌图片ToolStripMenuItem.Click += new System.EventHandler(this.导出pdf内资源图片ToolStripMenuItem_Click);
+            // 
+            // 添加水印ToolStripMenuItem
+            // 
+            this.添加水印ToolStripMenuItem.Name = "添加水印ToolStripMenuItem";
+            this.添加水印ToolStripMenuItem.Size = new System.Drawing.Size(150, 22);
+            this.添加水印ToolStripMenuItem.Text = "添加水印";
+            this.添加水印ToolStripMenuItem.Click += new System.EventHandler(this.添加水印ToolStripMenuItem_Click);
+            // 
+            // 密码ToolStripMenuItem
+            // 
+            this.密码ToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.添加密码ToolStripMenuItem1,
+            this.去除ToolStripMenuItem});
+            this.密码ToolStripMenuItem.Name = "密码ToolStripMenuItem";
+            this.密码ToolStripMenuItem.Size = new System.Drawing.Size(144, 22);
+            this.密码ToolStripMenuItem.Text = "密码";
+            // 
+            // 添加密码ToolStripMenuItem1
+            // 
+            this.添加密码ToolStripMenuItem1.Name = "添加密码ToolStripMenuItem1";
+            this.添加密码ToolStripMenuItem1.Size = new System.Drawing.Size(124, 22);
+            this.添加密码ToolStripMenuItem1.Text = "添加密码";
+            this.添加密码ToolStripMenuItem1.Click += new System.EventHandler(this.添加密码ToolStripMenuItem1_Click);
+            // 
+            // 去除ToolStripMenuItem
+            // 
+            this.去除ToolStripMenuItem.Name = "去除ToolStripMenuItem";
+            this.去除ToolStripMenuItem.Size = new System.Drawing.Size(124, 22);
+            this.去除ToolStripMenuItem.Text = "去除密码";
+            this.去除ToolStripMenuItem.Click += new System.EventHandler(this.去除ToolStripMenuItem_Click);
+            // 
+            // pdf信息ToolStripMenuItem
+            // 
+            this.pdf信息ToolStripMenuItem.Name = "pdf信息ToolStripMenuItem";
+            this.pdf信息ToolStripMenuItem.Size = new System.Drawing.Size(144, 22);
+            this.pdf信息ToolStripMenuItem.Text = "pdf信息";
+            this.pdf信息ToolStripMenuItem.Click += new System.EventHandler(this.pdf信息ToolStripMenuItem_Click);
+            // 
             // toolStripButton5
             // 
             this.toolStripButton5.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
@@ -277,21 +395,40 @@
             // 
             this.pdfViewerContextMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.copyToolStripMenuItem,
-            this.selectAllToolStripMenuItem});
+            this.selectAllToolStripMenuItem,
+            this.取消选中ToolStripMenuItem,
+            this.旋转ToolStripMenuItem,
+            this.删除ToolStripMenuItem});
             this.pdfViewerContextMenu.Name = "pdfViewerContextMenu";
-            this.pdfViewerContextMenu.Size = new System.Drawing.Size(129, 48);
+            this.pdfViewerContextMenu.Size = new System.Drawing.Size(181, 136);
             // 
             // copyToolStripMenuItem
             // 
             this.copyToolStripMenuItem.Name = "copyToolStripMenuItem";
-            this.copyToolStripMenuItem.Size = new System.Drawing.Size(128, 22);
-            this.copyToolStripMenuItem.Text = "&Copy";
+            this.copyToolStripMenuItem.Size = new System.Drawing.Size(124, 22);
+            this.copyToolStripMenuItem.Text = "复制";
+            this.copyToolStripMenuItem.Click += new System.EventHandler(this.copyToolStripMenuItem_Click);
             // 
             // selectAllToolStripMenuItem
             // 
             this.selectAllToolStripMenuItem.Name = "selectAllToolStripMenuItem";
-            this.selectAllToolStripMenuItem.Size = new System.Drawing.Size(128, 22);
-            this.selectAllToolStripMenuItem.Text = "Select &All";
+            this.selectAllToolStripMenuItem.Size = new System.Drawing.Size(124, 22);
+            this.selectAllToolStripMenuItem.Text = "选中所有";
+            this.selectAllToolStripMenuItem.Click += new System.EventHandler(this.selectAllToolStripMenuItem_Click);
+            // 
+            // 取消选中ToolStripMenuItem
+            // 
+            this.取消选中ToolStripMenuItem.Name = "取消选中ToolStripMenuItem";
+            this.取消选中ToolStripMenuItem.Size = new System.Drawing.Size(124, 22);
+            this.取消选中ToolStripMenuItem.Text = "取消选中";
+            this.取消选中ToolStripMenuItem.Click += new System.EventHandler(this.取消选中ToolStripMenuItem_Click);
+            // 
+            // 旋转ToolStripMenuItem
+            // 
+            this.旋转ToolStripMenuItem.Name = "旋转ToolStripMenuItem";
+            this.旋转ToolStripMenuItem.Size = new System.Drawing.Size(124, 22);
+            this.旋转ToolStripMenuItem.Text = "旋转";
+            this.旋转ToolStripMenuItem.Click += new System.EventHandler(this.旋转ToolStripMenuItem_Click);
             // 
             // richTextBox1
             // 
@@ -329,6 +466,21 @@
             this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.pictureBox1.TabIndex = 9;
             this.pictureBox1.TabStop = false;
+            // 
+            // pdfViewer1
+            // 
+            this.pdfViewer1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.pdfViewer1.Location = new System.Drawing.Point(0, 0);
+            this.pdfViewer1.Name = "pdfViewer1";
+            this.pdfViewer1.Size = new System.Drawing.Size(757, 689);
+            this.pdfViewer1.TabIndex = 8;
+            // 
+            // 删除ToolStripMenuItem
+            // 
+            this.删除ToolStripMenuItem.Name = "删除ToolStripMenuItem";
+            this.删除ToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.删除ToolStripMenuItem.Text = "删除";
+            this.删除ToolStripMenuItem.Click += new System.EventHandler(this.删除ToolStripMenuItem_Click);
             // 
             // MainForm
             // 
@@ -385,6 +537,22 @@
         private System.Windows.Forms.PictureBox pictureBox1;
         private System.Windows.Forms.ToolStripMenuItem 直接生成pdfToolStripMenuItem;
         private System.Windows.Forms.ToolStripButton toolStripButton5;
+        private System.Windows.Forms.ToolStripButton toolStripButton6;
+        private System.Windows.Forms.ToolStripButton toolStripButton7;
+        private System.Windows.Forms.ToolStripMenuItem 取消选中ToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem 旋转ToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem pdf信息ToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem 密码ToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem 添加密码ToolStripMenuItem1;
+        private System.Windows.Forms.ToolStripMenuItem 去除ToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem pdf操作ToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem 合并ToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem 拆分ToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem 转成图片ToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem 页合并成1页ToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem 导出内嵌图片ToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem 添加水印ToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem 删除ToolStripMenuItem;
     }
 }
 

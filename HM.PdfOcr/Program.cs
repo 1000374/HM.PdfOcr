@@ -30,12 +30,12 @@ namespace HM.PdfOcr
 
         static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
-           MessageBox.Show("发生未知异常！", (e.ExceptionObject as Exception).ToString());
+           MessageBox.Show((e.ExceptionObject as Exception).ToString(),"发生未知异常！");
         }
 
         static void Application_ThreadException(object sender, ThreadExceptionEventArgs e)
         {
-            MessageBox.Show("线程发生异常！", e.ToString());
+            MessageBox.Show(e.Exception.ToString(), "线程发生异常！");
         }
     }
 }
