@@ -3,7 +3,8 @@
 图片提取现仅可提取所有。
 
 此项目基于.netFramework4.8创建，PaddleSharp只能在x64下使用，文件只能在64位系统使用
-详情可以查看：https://www.cnblogs.com/xiaohemiao/p/17803534.html
+内容提取详情查看：https://www.cnblogs.com/xiaohemiao/p/17803534.html
+PDF操作详情查看:https://www.cnblogs.com/xiaohemiao/p/17824571.html
 
 使用以下开源库，感谢；
 PdfiumViewer PDF预览及可编辑PDF的提取： 
