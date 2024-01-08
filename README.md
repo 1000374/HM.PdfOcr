@@ -13,3 +13,9 @@ PDFsharp 生成PDF：
 https://github.com/empira/PDFsharp 
 PaddleSharp 对图片OCR识别： 
 https://github.com/sdcb/PaddleSharp 
+Open-Xml-PowerTools 把word转成html
+https://github.com/OfficeDev/Open-Xml-PowerTools
+DinkToPdf 把html转成pdf
+https://github.com/rdvojmoc/DinkToPdf
+doc转成docx
+https://github.com/EvolutionJobs/b2xtranslator

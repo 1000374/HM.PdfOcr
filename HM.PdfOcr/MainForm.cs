@@ -1,6 +1,11 @@
-﻿using EZFontResolver1;
+﻿using DinkToPdf;
+using DinkToPdf.Contracts;
+using DocumentFormat.OpenXml.Packaging;
+using EZFontResolver1;
 using HM.PdfOcr.UCControl;
 using OpenCvSharp;
+using OpenXmlPowerTools;
+using OpenXmlPowerTools.HtmlToWml.CSS;
 using PdfiumViewer;
 using PdfSharp;
 using PdfSharp.Drawing;
@@ -14,19 +19,12 @@ using Sdcb.PaddleOCR.Models;
 using Sdcb.PaddleOCR.Models.Local;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Diagnostics;
 using System.Drawing;
-using System.Drawing.Drawing2D;
-using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.Xml.Linq;
 using PdfDocument = PdfiumViewer.PdfDocument;
 using Point = System.Drawing.Point;
 
@@ -48,7 +46,7 @@ namespace HM.PdfOcr
             {
                 form.RestoreDirectory = true;
                 //"PDF Files (*.pdf)|*.pdf|All Files (*.*)|*.*";
-                form.Filter = "文件 (*.pdf)|*.pdf|图片(*.jpg)|*.gif;*.jpg;*.jpeg;*.bmp;*.jfif;*.png;|All Files (*.*)|*.*";
+                form.Filter = "文件 (*.pdf)|*.pdf|图片(*.jpg)|*.gif;*.jpg;*.jpeg;*.bmp;*.jfif;*.png;|Word(*.docx)|*.docx|Word(*.doc)|*.doc|All Files (*.*)|*.*";
                 form.Title = "打开文件";
                 if (form.ShowDialog(this) != DialogResult.OK)
                 {
@@ -56,20 +54,14 @@ namespace HM.PdfOcr
                     return;
                 }
                 fileName = form.FileName;
-                fileType = string.Equals(Path.GetExtension(fileName), ".pdf", StringComparison.CurrentCultureIgnoreCase) ? FileType.PDF : FileType.Image;
+                fileType = string.Equals(Path.GetExtension(fileName), ".pdf", StringComparison.CurrentCultureIgnoreCase) ? FileType.PDF :
+                   string.Equals(Path.GetExtension(fileName), ".DOCX", StringComparison.CurrentCultureIgnoreCase) ? FileType.Docx :
+                   string.Equals(Path.GetExtension(fileName), ".DOC", StringComparison.CurrentCultureIgnoreCase) ? FileType.Doc : FileType.Image;
                 if (fileType == FileType.PDF)
                 {
-                    pictureBox1.Visible = false;
-                    pdfViewer1.Visible = true;
-                    pictureBox1.Image?.Dispose();
-                    pictureBox1.Image = null;
-                    pdfViewer1.Document?.Dispose();
-                    pdfViewer1.Document = OpenDocument(fileName);
-                    toolStripButton7.Enabled = true;
-                    pdfViewer1.Renderer.CursorMode = PdfViewerCursorMode.TextSelection;
-                    _copy.Checked = true;
+                    LoadPdfFrom();
                 }
-                else
+                else if (fileType == FileType.Image)
                 {
                     pictureBox1.Visible = true;
                     pdfViewer1.Visible = false;
@@ -77,6 +69,33 @@ namespace HM.PdfOcr
                     pdfViewer1.Document?.Dispose();
                     pictureBox1.Image = null;
                     pictureBox1.Image = image;
+                }
+                else if (fileType == FileType.Docx)
+                {
+                    var stream = ParseDOCXToPdf(fileName);
+                    LoadPdfFrom(stream);
+                    fileType = FileType.PDF;
+                }
+                else if (fileType == FileType.Doc)
+                {
+                    string errorMsg = "";
+                    var choosenOutputFile = WordHelper.DocToDocx(fileName, ref errorMsg);
+                    if (!string.IsNullOrEmpty(errorMsg))
+                    {
+                        AppendTextToRich($"转换Doc2Docx失败{errorMsg}");
+                        return;
+                    }
+                    if (File.Exists(choosenOutputFile))
+                    {
+                        var stream = ParseDOCXToPdf(choosenOutputFile);
+                        LoadPdfFrom(stream);
+                        fileType = FileType.PDF;
+                        File.Delete(choosenOutputFile);
+                    }
+                    else
+                    {
+                        AppendTextToRich($"转换Doc2Docx失败");
+                    }
                 }
                 toolStripButton1.Enabled = true;
                 toolStripButton2.Enabled = true;
@@ -89,6 +108,22 @@ namespace HM.PdfOcr
                 toolStripDropDownButton1.Enabled = true;
             }
         }
+        private void LoadPdfFrom(MemoryStream stream = null)
+        {
+            pictureBox1.Visible = false;
+            pdfViewer1.Visible = true;
+            pictureBox1.Image?.Dispose();
+            pictureBox1.Image = null;
+            pdfViewer1.Document?.Dispose();
+            if (stream == null)
+                pdfViewer1.Document = OpenDocument(fileName);
+            else
+                pdfViewer1.Document = PdfDocument.Load(this, stream);
+            toolStripButton7.Enabled = true;
+            pdfViewer1.Renderer.CursorMode = PdfViewerCursorMode.TextSelection;
+            _copy.Checked = true;
+        }
+
         private PdfDocument OpenDocument(string fileName)
         {
             try
@@ -341,6 +376,48 @@ namespace HM.PdfOcr
                 }
             }
         }
+        private MemoryStream ParseDOCXToPdf(string filePath)
+        {
+            var htmlText = "";
+            try
+            {
+                htmlText = WordHelper.ParseDOCX(filePath);
+            }
+            catch (OpenXmlPackageException e)
+            {
+                if (e.ToString().Contains("Invalid Hyperlink"))
+                {
+                    using (FileStream fs = new FileStream(filePath, FileMode.OpenOrCreate, FileAccess.ReadWrite))
+                    {
+                        UriFixer.FixInvalidUri(fs, brokenUri => WordHelper.FixUri(brokenUri));
+                    }
+                    htmlText = WordHelper.ParseDOCX(filePath);
+                }
+            }
+            var converter = new BasicConverter(new PdfTools());
+            //var converter = new SynchronizedConverter(new PdfTools());
+            var doc = new HtmlToPdfDocument()
+            {
+                GlobalSettings = {
+                ColorMode = ColorMode.Color,
+                Orientation = DinkToPdf.Orientation.Portrait,
+                PaperSize = PaperKind.A4,
+                //Out="test2.pdf"
+            },
+                Objects = {
+                   new ObjectSettings() {
+                                         PagesCount = true,
+                                         HtmlContent = htmlText,
+                                         WebSettings = { DefaultEncoding = "utf-8" },
+                                         //HeaderSettings = { FontSize = 9, Right = "页 [page] 总 [toPage]", Line = true },
+                                         FooterSettings = { FontSize = 9, Right = "页 [page] 总 [toPage]" }
+                                        }
+                            }
+            };
+            var bytes = converter.Convert(doc);
+            return new MemoryStream(bytes);
+        }
+
 
         private void MainForm_Load(object sender, EventArgs e)
         {
@@ -507,7 +584,6 @@ namespace HM.PdfOcr
         }
 
         #endregion
-
         void Renderer_DisplayRectangleChanged(object sender, EventArgs e)
         {
             _page.Text = (pdfViewer1.Renderer.Page + 1).ToString();
@@ -571,7 +647,13 @@ namespace HM.PdfOcr
 
         private void _openFile_Click(object sender, EventArgs e)
         {
-            OpenFile();
+            try
+            {
+                this.ShowLoading();
+                OpenFile();
+            }
+            finally { this.CloseLoading(); }
+
         }
 
         private void toolStripButton1_Click(object sender, EventArgs e)
@@ -809,22 +891,25 @@ namespace HM.PdfOcr
                 try
                 {
                     this.ShowLoading();
-                    var file = "";
+                    List<string> files = new List<string>();
                     using (var form = new OpenFileDialog())
                     {
                         form.Filter = "PDF Files (*.pdf)|*.pdf|All Files (*.*)|*.*";
                         form.RestoreDirectory = true;
                         form.Title = "Open PDF File";
-
+                        form.Multiselect = true;
                         if (form.ShowDialog(this) != DialogResult.OK)
                         {
                             Dispose();
                             return;
                         }
-                        file = form.FileName;
+                        files.AddRange(form.FileNames);
                     }
                     var document = pdfViewer1.Document;
-                    var doc = PdfSupport.MergePDF(document, OpenDocument(file));
+                    var pdfdoc = new List<IPdfDocument>();
+                    pdfdoc.Add(document);
+                    pdfdoc.AddRange(files.ConvertAll(file => OpenDocument(file)));
+                    var doc = PdfSupport.MergePDF(pdfdoc.ToArray());
                     {
                         if (doc != null)
                         {
@@ -832,7 +917,7 @@ namespace HM.PdfOcr
                             pdfViewer1.Document = doc;
                         }
                     }
-                    AppendTextToRich($"合并pdf已完成{file}");
+                    AppendTextToRich($"合并pdf已完成{files.Count()}");
                 }
                 finally { this.CloseLoading(); }
             }
@@ -1177,7 +1262,7 @@ namespace HM.PdfOcr
                                 format);
                             var pen = new XPen(XColor.FromArgb(color), 2);
                             gfx.DrawPath(pen, path);
-                        } 
+                        }
                         if (waterIndex == 2)
                         {
                             var path = new XGraphicsPath();
@@ -1186,7 +1271,7 @@ namespace HM.PdfOcr
                             format.LineAlignment = XLineAlignment.Near;
                             path.AddString(watermark, font.FontFamily, XFontStyle.BoldItalic, fontsize,
                                 new XPoint((page.Width - size.Width) / 2, (page.Height - size.Height) / 2),
-                                format);                 
+                                format);
                             var pen = new XPen(XColor.FromArgb(50, 75, 0, 130), 3);
                             XBrush brush = new XSolidBrush(XColor.FromArgb(color));
                             gfx.DrawPath(pen, brush, path);
@@ -1198,12 +1283,14 @@ namespace HM.PdfOcr
                     pdfViewer1.Document = PdfDocument.Load(this, outputmemoryStream);
                 }
             }
-        } 
+        }
     }
 
     enum FileType
     {
         PDF,
-        Image
+        Image,
+        Docx,
+        Doc
     }
 }
