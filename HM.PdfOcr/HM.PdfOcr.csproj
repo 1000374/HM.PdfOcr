@@ -1,5 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\packages\Pdfium.Net.Free.3.0.0.5-alpha\build\Pdfium.Net.Free.props" Condition="Exists('..\packages\Pdfium.Net.Free.3.0.0.5-alpha\build\Pdfium.Net.Free.props')" />
   <Import Project="..\packages\OpenCvSharp4.runtime.win.4.8.0.20230708\build\net48\OpenCvSharp4.runtime.win.props" Condition="Exists('..\packages\OpenCvSharp4.runtime.win.4.8.0.20230708\build\net48\OpenCvSharp4.runtime.win.props')" />
   <Import Project="..\packages\Sdcb.PaddleInference.runtime.win64.mkl.2.5.1\build\net\Sdcb.PaddleInference.runtime.win64.mkl.props" Condition="Exists('..\packages\Sdcb.PaddleInference.runtime.win64.mkl.2.5.1\build\net\Sdcb.PaddleInference.runtime.win64.mkl.props')" />
   <Import Project="..\packages\Sdcb.Paddle2Onnx.runtime.win64.1.0.0.2\build\net\Sdcb.Paddle2Onnx.runtime.win64.props" Condition="Exists('..\packages\Sdcb.Paddle2Onnx.runtime.win64.1.0.0.2\build\net\Sdcb.Paddle2Onnx.runtime.win64.props')" />
@@ -95,10 +96,6 @@
     <Reference Include="DocumentFormat.OpenXml, Version=2.7.2.0, Culture=neutral, PublicKeyToken=8fb06cb64d019a17, processorArchitecture=MSIL">
       <HintPath>..\packages\DocumentFormat.OpenXml.2.7.2\lib\net46\DocumentFormat.OpenXml.dll</HintPath>
     </Reference>
-    <Reference Include="EZFontResolver, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>Dll\EZFontResolver.dll</HintPath>
-    </Reference>
     <Reference Include="Microsoft.Win32.Primitives, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Win32.Primitives.4.0.1\lib\net46\Microsoft.Win32.Primitives.dll</HintPath>
       <Private>True</Private>
@@ -110,17 +107,11 @@
     <Reference Include="OpenXmlPowerTools, Version=4.5.3.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\OpenXmlPowerTools.4.5.3.2\lib\net45\OpenXmlPowerTools.dll</HintPath>
     </Reference>
-    <Reference Include="PdfiumViewer, Version=2.13.0.0, Culture=neutral, PublicKeyToken=91e4789cfb0609e0, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>Dll\PdfiumViewer.dll</HintPath>
+    <Reference Include="Pdfium.Net, Version=3.0.0.5, Culture=neutral, PublicKeyToken=a89209af80045582, processorArchitecture=MSIL">
+      <HintPath>..\packages\Pdfium.Net.Free.3.0.0.5-alpha\lib\net45\Pdfium.Net.dll</HintPath>
     </Reference>
-    <Reference Include="PdfSharp-gdi, Version=1.51.5185.0, Culture=neutral, PublicKeyToken=f94615aa0424f9eb, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>Dll\PdfSharp-gdi.dll</HintPath>
-    </Reference>
-    <Reference Include="PdfSharp.Charting-gdi, Version=1.51.5185.0, Culture=neutral, PublicKeyToken=f94615aa0424f9eb, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>Dll\PdfSharp.Charting-gdi.dll</HintPath>
+    <Reference Include="PdfiumViewer, Version=3.0.0.5, Culture=neutral, PublicKeyToken=a89209af80045582, processorArchitecture=MSIL">
+      <HintPath>..\packages\PdfiumViewer.Free.3.0.0.5-alpha\lib\PdfiumViewer.dll</HintPath>
     </Reference>
     <Reference Include="Sdcb.PaddleInference, Version=2.5.0.1, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Sdcb.PaddleInference.2.5.0.1\lib\net45\Sdcb.PaddleInference.dll</HintPath>
@@ -311,7 +302,6 @@
     <Compile Include="AboutForm.Designer.cs">
       <DependentUpon>AboutForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="PDFHelper.cs" />
     <Compile Include="UCControl\CompentExtension.cs" />
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
@@ -367,9 +357,6 @@
     <None Include="Dll\v0.12.5\x64\libwkhtmltox.so" />
     <None Include="Dll\v0.12.5\x86\libwkhtmltox.dylib" />
     <None Include="Dll\v0.12.5\x86\libwkhtmltox.so" />
-    <None Include="fonts\msyh.ttf">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
@@ -419,5 +406,6 @@ echo f|=xcopy /s /e /i /y /d "$(SolutionDir)$(SolutionName)\Dll\v0.12.5\$(Platfo
     <Error Condition="!Exists('..\packages\Sdcb.Paddle2Onnx.runtime.win64.1.0.0.2\build\net\Sdcb.Paddle2Onnx.runtime.win64.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Sdcb.Paddle2Onnx.runtime.win64.1.0.0.2\build\net\Sdcb.Paddle2Onnx.runtime.win64.props'))" />
     <Error Condition="!Exists('..\packages\Sdcb.PaddleInference.runtime.win64.mkl.2.5.1\build\net\Sdcb.PaddleInference.runtime.win64.mkl.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Sdcb.PaddleInference.runtime.win64.mkl.2.5.1\build\net\Sdcb.PaddleInference.runtime.win64.mkl.props'))" />
     <Error Condition="!Exists('..\packages\OpenCvSharp4.runtime.win.4.8.0.20230708\build\net48\OpenCvSharp4.runtime.win.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\OpenCvSharp4.runtime.win.4.8.0.20230708\build\net48\OpenCvSharp4.runtime.win.props'))" />
+    <Error Condition="!Exists('..\packages\Pdfium.Net.Free.3.0.0.5-alpha\build\Pdfium.Net.Free.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Pdfium.Net.Free.3.0.0.5-alpha\build\Pdfium.Net.Free.props'))" />
   </Target>
 </Project>

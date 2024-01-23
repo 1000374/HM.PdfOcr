@@ -113,8 +113,7 @@
             this.comboBox1.FormattingEnabled = true;
             this.comboBox1.Items.AddRange(new object[] {
             "文本字符串",
-            "轮廓图形路径",
-            "透明图形路径"});
+            "轮廓图形路径"});
             this.comboBox1.Location = new System.Drawing.Point(169, 30);
             this.comboBox1.Name = "comboBox1";
             this.comboBox1.Size = new System.Drawing.Size(105, 20);
