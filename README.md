@@ -8,14 +8,8 @@ PDF操作详情查看:https://www.cnblogs.com/xiaohemiao/p/17824571.html
 
 使用以下开源库，感谢；
 PdfiumViewer PDF预览及可编辑PDF的提取： 
-https://github.com/pvginkel/PdfiumViewer 
-PDFsharp 生成PDF： 
-https://github.com/empira/PDFsharp 
+https://github.com/1000374/PdfiumViewer 
+Pdfium.Net 生成PDF： 
+https://github.com/1000374/Pdfium.Net
 PaddleSharp 对图片OCR识别： 
 https://github.com/sdcb/PaddleSharp 
-Open-Xml-PowerTools 把word转成html
-https://github.com/OfficeDev/Open-Xml-PowerTools
-DinkToPdf 把html转成pdf
-https://github.com/rdvojmoc/DinkToPdf
-doc转成docx
-https://github.com/EvolutionJobs/b2xtranslator
